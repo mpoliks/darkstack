@@ -1,0 +1,10 @@
+# environment / caches / OS
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+.claude/
+
+# working documents — kept on disk, not committed (this is "just the toy and figures")
+EXPERIMENTAL_APPENDIX.md
+FIGURE_PLACEMENT.md
