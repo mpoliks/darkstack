@@ -1,35 +1,35 @@
 # The Dark Stack — toy model and figures
 
 A small, self-contained simulation that makes the core claims of *The Dark Stack:
-Toward the Full Automation of Software* measurable, and the five figures it
-generates. There is **one object** — a toy dark factory whose organs are the exact
-models the paper cites — and the five figures are *views* of it. You run it with
+Toward the Full Automation of Software* measurable, with the eight figures it generates.
+There is **one object**, a toy dark factory whose organs are the exact models the paper
+cites, and every figure is a view of it. You run it with
 
 ```bash
 python run_factory.py
 ```
 
-which instantiates one `DarkFactory`, prints its five headline lenses, and renders
-all five figures from that single object. The organs are exact, so the theorems
-are exact: V = 0 / U\* = ½ (Deng–Schneider–Sivan), Kc = 2γ (Kuramoto), and the
-incompressibility counting bound all hold; only the versions and pathologies are
-emergent, which is as it should be.
+which builds one `DarkFactory`, prints its five headline lenses, and renders all five
+core figures from that single object. Because the organs are exact, the theorems are
+exact: V = 0 and U\* = ½ (Deng–Schneider–Sivan), Kc = 2γ (Kuramoto), and the
+incompressibility counting bound all hold. Only the versions and the pathologies emerge
+from the dynamics: the proved results are proved, and the rest is observed.
 
 ## Layout
 
 ```
 run_factory.py       the capstone: one DarkFactory -> all five views
 src/
-  darkfactory.py     THE object: five lenses + the full data each figure plots
-  learners.py        Hedge, EXP3, and the Blum–Mansour no-swap-regret reduction
+  darkfactory.py     the object: five lenses + the full data each figure plots
   factory.py         the population dynamics organ (stochastic replicator)
+  learners.py        Hedge, EXP3, and the Blum–Mansour no-swap-regret reduction
   transfer_operator.py   Ulam estimate of the transfer operator + spectral tools
   ews.py             early-warning signals (variance, lag-1 autocorrelation)
   kuramoto.py        coupled-oscillator synchronisation
   control.py         PID-priced governance and cascade timing
   style.py           shared figure styling
 figures/             one thin, plot-only view per figure (data comes from DarkFactory)
-  audit_layout.py    layout checker (no text/legend collisions)
+  audit_layout.py    layout checker (no text or legend collisions)
 out/                 the numbers each figure computed
 ```
 
@@ -41,49 +41,51 @@ pip install -r requirements.txt
 
 python run_factory.py          # one factory -> the summary + all five figures
 
-# or a single figure / the object alone:
+# or a single figure, or the object alone:
 python figures/fig2_stackelberg.py
 python src/darkfactory.py       # just the five-lens summary
 
 # model self-tests (regret bounds, metastability, EWS, Kc, cascade)
 for m in learners transfer_operator ews kuramoto; do python src/$m.py; done
 
-# check no figure has a text/legend collision
+# check that no figure collides text with a legend
 python figures/audit_layout.py
 ```
 
 ## The five figures
 
-1. **Opacity–cost frontier** — legible (low-dimensional) assemblies are exponentially
-   rare and carry a premium that grows with structural complexity.
-2. **The Stackelberg gap (V vs U\*)** — on the Deng–Schneider–Sivan game: a mean-based
+1. **Opacity–cost frontier.** Legible (low-dimensional) assemblies are exponentially
+   rare, and the premium for staying legible grows as the best designs get more complex.
+2. **The Stackelberg gap (V vs U\*).** On the Deng–Schneider–Sivan game: a mean-based
    frontier is steered to U\*, a no-swap-regret core is held to V.
-3. **Versioning by the transfer operator** — versions as near-invariant behavioural
-   modes; the spectral gap grades robustness.
-4. **Pathologies & catastrophe** — distinct behavioural fingerprints, critical slowing
-   down before a fold, and overfitting as aliasing.
-5. **Governance timing & the anything factory** — cascade-ratio (iatrogenic thrash),
-   Kuramoto entrainment, and the phase-locked condensate.
+3. **Versioning by the transfer operator.** Versions as near-invariant modes of
+   operation; the spectral gap grades how robust each one is.
+4. **Pathologies and catastrophe.** Four distinct fingerprints, critical slowing down
+   before a fold, and overfitting as aliasing.
+5. **Governance timing and the anything factory.** The cascade ratio that tames
+   iatrogenic thrash, Kuramoto entrainment, and the phase-locked condensate.
 
-Results are seed-fixed and reproduce bit-for-bit; the figure data is in `out/`.
+Results are seed-fixed and reproduce bit-for-bit; the figure data sits in `out/`.
 
-**Robustness** (`python figures/robustness.py` → `figR_robustness.png`): each result is shown
-to be a *region* of parameter space, not a tuned point — the opacity premium across `(d,k)`,
-the Stackelberg gap across learning rate, the two-version structure across `(M,μ)`, the four
-pathologies tiling `(μ,c)`, the early-warning trend across ramp rate and noise, and the
-Kuramoto onset tracking the analytic `Kc = 2γ`.
+## Three robustness studies
 
-**Dynamics invariance** (`python figures/dynamics_invariance.py` → `figD_dynamics.png`): the
-Stackelberg gap holds across mean-based learners (Hedge, FTPL, EXP3 — not just multiplicative
-weights), and the metastable versions survive a change of selection functional (exponential →
-linear fitness) though not a change of class (best-response/logit has none — metastability
-needs imitation).
+Separate from the five-figure sequence, these test whether the results survive outside
+the exact settings the figures use.
 
-**Analytic anchoring** (`python figures/analytic_anchor.py` → `figA_anchor.png`): the two
-*emergent* results fall on the closed-form laws their mechanisms predict, not on lines fit to
-themselves. Metastable escape is memoryless (exponential dwell times — Kramers / Poisson
-barrier-crossing); the transfer-operator spectral gap *is* the escape clock (mean dwell `= 2τ₂`,
-the two-state relaxation law); and approaching the fold both early-warning signals rise, obeying
-the AR(1) / Ornstein–Uhlenbeck law `σ² ∝ 1/(1−α²)` (Scheffer et al., Box 3). The Kuramoto onset
-is anchored to `Kc = 2γ` in `figR_robustness.py`; the Stackelberg `V` / `U*` are exact by
-construction.
+- **Robustness** (`figures/robustness.py` → `figR_robustness.png`): each result holds
+  across a region of parameter space, and the operating points the figures use sit
+  inside that region. The opacity premium over (d,k), the Stackelberg gap over learning
+  rate, the two-version split over (M,μ), the four pathologies tiling (μ,c), the
+  early-warning trend over ramp rate and noise, and the Kuramoto onset tracking the
+  analytic Kc = 2γ.
+- **Dynamics invariance** (`figures/dynamics_invariance.py` → `figD_dynamics.png`): the
+  Stackelberg gap holds across several mean-based learners: Hedge, FTPL, and EXP3,
+  alongside multiplicative weights. The metastable versions also survive a change of
+  selection functional, from exponential to linear fitness. They disappear only under a
+  different class of dynamics: best-response (logit) gives one version, because
+  metastability needs imitation.
+- **Closed-form checks** (`figures/analytic_anchor.py` → `figA_anchor.png`): the two
+  emergent results fall on the laws their mechanisms predict. Metastable escape is
+  memoryless (dwell times are exponential), the transfer-operator spectral gap sets the
+  escape timescale (mean dwell = 2τ₂), and as the spec approaches the fold both
+  early-warning signals obey the AR(1) law σ² ∝ 1/(1−α²).
