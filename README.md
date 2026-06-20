@@ -66,3 +66,9 @@ python figures/audit_layout.py
    Kuramoto entrainment, and the phase-locked condensate.
 
 Results are seed-fixed and reproduce bit-for-bit; the figure data is in `out/`.
+
+**Robustness** (`python figures/robustness.py` → `figR_robustness.png`): each result is shown
+to be a *region* of parameter space, not a tuned point — the opacity premium across `(d,k)`,
+the Stackelberg gap across learning rate, the two-version structure across `(M,μ)`, the four
+pathologies tiling `(μ,c)`, the early-warning trend across ramp rate and noise, and the
+Kuramoto onset tracking the analytic `Kc = 2γ`.
