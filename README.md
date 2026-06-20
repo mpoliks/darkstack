@@ -72,3 +72,9 @@ to be a *region* of parameter space, not a tuned point — the opacity premium a
 the Stackelberg gap across learning rate, the two-version structure across `(M,μ)`, the four
 pathologies tiling `(μ,c)`, the early-warning trend across ramp rate and noise, and the
 Kuramoto onset tracking the analytic `Kc = 2γ`.
+
+**Dynamics invariance** (`python figures/dynamics_invariance.py` → `figD_dynamics.png`): the
+Stackelberg gap holds across mean-based learners (Hedge, FTPL, EXP3 — not just multiplicative
+weights), and the metastable versions survive a change of selection functional (exponential →
+linear fitness) though not a change of class (best-response/logit has none — metastability
+needs imitation).

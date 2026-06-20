@@ -1,0 +1,18 @@
+{
+  "stackelberg_finals": {
+    "Hedge (MWU)": 0.4660666666666667,
+    "FTPL": 0.46634583333333335,
+    "EXP3 (bandit)": 0.21354166666666669,
+    "Blum\u2013Mansour core": -0.4471625
+  },
+  "separation": {
+    "replicator": 15.607247513397937,
+    "linear": 8.710587800925834,
+    "logit": 1.9738634779245305
+  },
+  "n_versions": {
+    "replicator": 2,
+    "linear": 2,
+    "logit": 1
+  }
+}

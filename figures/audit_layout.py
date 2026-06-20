@@ -22,7 +22,7 @@ from matplotlib.patches import Rectangle
 
 HERE = os.path.dirname(__file__)
 FIGS = ["fig1_opacity", "fig2_stackelberg", "fig3_versioning",
-        "fig4_pathologies", "fig5_anything_factory", "robustness"]
+        "fig4_pathologies", "fig5_anything_factory", "robustness", "dynamics_invariance"]
 
 
 def load_and_run(modname):
