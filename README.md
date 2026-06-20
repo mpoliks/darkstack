@@ -78,3 +78,12 @@ Stackelberg gap holds across mean-based learners (Hedge, FTPL, EXP3 — not just
 weights), and the metastable versions survive a change of selection functional (exponential →
 linear fitness) though not a change of class (best-response/logit has none — metastability
 needs imitation).
+
+**Analytic anchoring** (`python figures/analytic_anchor.py` → `figA_anchor.png`): the two
+*emergent* results fall on the closed-form laws their mechanisms predict, not on lines fit to
+themselves. Metastable escape is memoryless (exponential dwell times — Kramers / Poisson
+barrier-crossing); the transfer-operator spectral gap *is* the escape clock (mean dwell `= 2τ₂`,
+the two-state relaxation law); and approaching the fold both early-warning signals rise, obeying
+the AR(1) / Ornstein–Uhlenbeck law `σ² ∝ 1/(1−α²)` (Scheffer et al., Box 3). The Kuramoto onset
+is anchored to `Kc = 2γ` in `figR_robustness.py`; the Stackelberg `V` / `U*` are exact by
+construction.
