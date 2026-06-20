@@ -1,5 +1,5 @@
 # environment / caches / OS
-.venv/
+.venv*/
 __pycache__/
 *.pyc
 .DS_Store
