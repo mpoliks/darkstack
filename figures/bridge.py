@@ -1,28 +1,25 @@
 """
-THE BRIDGE -- the opacity floor off the enumerable cube, on real verified tasks.
+Bridge -- the legibility floor on real tabular tasks (off the enumerable cube).
 
-The toy prices opacity only on an enumerable Boolean cube, which the paper calls the
-conservative, search-free regime. This figure runs the appendix's bridge on real data
-with a held-out verifier, so a point of the legibility floor lives off the cube. The
-LEGIBLE reader is an explicitly additive model (HistGradientBoosting with
+The other figures price opacity on an enumerable Boolean cube, where search always
+succeeds. This figure measures the same legibility floor on real data with a held-out
+verifier. The LEGIBLE reader is an explicitly additive model (HistGradientBoosting with
 interaction_cst='no_interactions' -- unlimited per-feature shape, zero cross-feature
 interaction -- the capacity-matched order-1 reader); the FREE searcher is the same family
 with full interactions; the floor is the held-out performance the additive reader forgoes.
 The space is non-enumerable and finite-data search genuinely fails, so the cube's
 "efficiency always wins" pathology does not apply.
 
-An adversarial red-team set the method: a depth-1 stump conflates univariate-shape capacity
-with interaction order and OVERSTATES the floor ~2x, so the honest reader is the additive
-model, not max_depth=1. Panel A shows that gap; the corrected real floor on california is
-~0.08 (not the depth-1 0.14).
+A depth-1 stump conflates univariate-shape capacity with interaction order, so the order-1
+reader is the additive model (interaction_cst), not max_depth=1: the stump overstates the
+floor on real features (california 0.127 by the stump, 0.088 by the additive reader).
 
-  A  Controlled tasks of known order: the additive floor (honest) rises with interaction
-     order and is ~0 at order 1; the depth-1 proxy overstates it ~2x.
-  B  Off the cube: california housing carries a real additive floor (~0.08 R^2, location is
-     an irreducible 2-D interaction); diabetes is additive (floor ~0). The free model is
-     near-optimal, so the floor is not a weak-baseline artifact.
-  C  Classification floor in log-loss (accuracy hides it): breast cancer ~0, wine and
-     digits carry a small probabilistic floor.
+  A  The additive floor rises with interaction order and is ~0 at order 1 (controlled
+     tasks of known order, with california and diabetes shown as real points).
+  B  On real data the depth-1 stump overstates the floor; the additive (order-1) reader is
+     the capacity-matched measure (california 0.088, diabetes ~0).
+  C  Classification floor in log-loss (accuracy hides it): breast cancer ~0, wine ~0,
+     digits a small positive floor.
 """
 import os, sys, json
 import numpy as np
@@ -110,15 +107,15 @@ def main():
     style.legend_below(axA, ncol=1)
     style.panel_tag(axA, "A")
 
-    # B: the honest additive floor vs the naive depth-1 proxy, on real data
+    # B: the additive floor vs the depth-1 proxy, on real data
     axB = axes[1]
     rn = [n for n, _ in reg]; padd = [r["phi_add"] for _, r in reg]; pd1 = [r["phi_d1"] for _, r in reg]
     x = np.arange(len(rn)); w = 0.38
     axB.bar(x - w / 2, pd1, w, color=style.FAINT, label="depth-1 proxy (overstates)")
-    axB.bar(x + w / 2, padd, w, color=P["frontier"], label="additive reader (honest)")
+    axB.bar(x + w / 2, padd, w, color=P["frontier"], label="additive reader (order-1)")
     axB.set_xticks(x); axB.set_xticklabels(rn, fontsize=8.5)
     axB.set_ylabel("floor  $\\Phi_1$  ($\\Delta R^2$)")
-    axB.set_title("The depth-1 proxy overstates on real\nfeatures; the additive floor is honest")
+    axB.set_title("The depth-1 proxy overstates on real\nfeatures; the additive reader is capacity-matched")
     style.legend_below(axB, ncol=1)
     style.panel_tag(axB, "B")
 

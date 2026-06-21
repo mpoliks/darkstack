@@ -13,7 +13,7 @@ results are not artifacts of those particular choices:
   B/C Metastable versions survive a change of selection functional: exponential
      (replicator) AND linear-fitness selection both telegraph between two
      versions. They do NOT survive a change to a different CLASS of dynamics --
-     best-response (logit) gives one version -- which is the honest finding:
+     best-response (logit) gives one version -- which sharpens the claim:
      metastability needs imitation / positive frequency dependence, and within
      that class it is robust.
 """

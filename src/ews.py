@@ -9,8 +9,7 @@ Mechanism (saddle-node / fold): as a control parameter approaches the fold, the
 dominant eigenvalue of the linearised return map -> 1, so the system's recovery
 rate from perturbations -> 0. A slower return rate inflates both the lag-1
 autocorrelation (toward 1) and the stationary variance (toward infinity). These
-are model-free leading indicators -- but with well-documented false positives,
-which we report honestly.
+are model-free leading indicators -- but with well-documented false positives.
 
 References
 ----------
