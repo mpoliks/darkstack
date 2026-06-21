@@ -15,8 +15,8 @@ forced. Four results:
      with budget (search for performance); a legible reader plateaus at the
      budget-invariant floor Phi* (efficiency available only illegibly). Phi* = 0 for a
      separable task, > 0 for an interacting one.
-  D  The dividend kills the part-count false positive: the linear control's old premium
-     of ~0.9 becomes a true zero.
+  D  On a separable design the dividend is zero, where a part-count measure reports a
+     positive premium (the linear control: ~0.9 by part-count, 0 by the dividend).
 """
 import os, sys, json
 import numpy as np
@@ -107,7 +107,7 @@ def panel_budget(ax):
                 legible_order2=c2[1].tolist(), legible_separable=c1[1].tolist(), phi_star=phi)
 
 
-# ---- D: the dividend kills the part-count false positive ---------------------
+# ---- D: the dividend is zero on separable designs (part-count over-reports) --
 def panel_falsepositive(ax):
     d, seeds = 12, 16
     B, _ = bit_matrix(d); pc = popcounts(d)
@@ -120,11 +120,11 @@ def panel_falsepositive(ax):
                                pc, Kmax=2)[0][1] for s in range(seeds)])
         old.append(om); new.append(d1)
     x = np.arange(len(fams)); w = 0.38
-    ax.bar(x - w / 2, old, w, color=style.FAINT, label="old premium (part-count)")
+    ax.bar(x - w / 2, old, w, color=style.FAINT, label="part-count premium")
     ax.bar(x + w / 2, new, w, color=P["frontier"], label="dividend $D_1$ (interaction)")
     ax.set_xticks(x); ax.set_xticklabels([f"{k}\n({l})" for k, l in fams], fontsize=7.5)
     ax.set_ylabel("opacity cost  ($\\sigma_f$)")
-    ax.set_title("The dividend voids the part-count\nfalse positive (linear $\\to 0$)")
+    ax.set_title("Separable designs: the dividend is\nzero (part-count over-reports)")
     style.legend_below(ax, ncol=1)
     style.panel_tag(ax, "D")
     return dict(families=[k for k, _ in fams], old_premium=old, dividend_D1=new)

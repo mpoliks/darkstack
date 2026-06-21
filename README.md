@@ -1,9 +1,11 @@
 # The Dark Stack — toy model and figures
 
-A small, self-contained simulation that makes the core claims of *The Dark Stack:
-Toward the Full Automation of Software* measurable, with the eight figures it generates.
-There is **one object**, a toy dark factory whose organs are the exact models the paper
-cites, and every figure is a view of it. You run it with
+A small, self-contained simulation of a learning-agent population under selection and
+priced governance — a toy *dark factory* — together with the eight figures it generates.
+There is **one object**, a `DarkFactory` assembled from standard models (no-regret
+learners, a stochastic replicator, a transfer operator, early-warning signals, Kuramoto
+coupling), and every figure is a view of it. It accompanies the essay *The Dark Stack:
+Toward the Full Automation of Software*. You run it with
 
 ```bash
 python run_factory.py
@@ -94,9 +96,7 @@ the exact settings the figures use.
 
 (`python figures/opacity_dividend.py` → `figO_dividend.png`; toolkit in `src/dividend.py`)
 
-The toy's headline cost, the opacity premium, was priced by part-count, so it reported a
-positive cost even for a separable task whose optimum a one-variable reader recovers
-exactly. The dividend reprices opacity by interaction order. A reader who can hold K-way
+The opacity dividend prices opacity by interaction order. A reader who can hold K-way
 interactions builds the best degree-≤K model of the value landscape and acts on its
 argmax; the dividend `D_K` is the value that reader leaves unreached. Three results
 follow.
@@ -106,7 +106,7 @@ follow.
 - The **budget-invariant floor** `Φ*` (the gap a legible reader keeps after a free
   searcher has closed its own) is zero for a separable task and positive for an
   interacting one.
-- The dividend sends the linear control's part-count premium of ~0.7 to a true zero.
+- On a separable task the dividend is zero; a part-count measure, by contrast, reports ~0.7.
 
 Acting near-optimally is a weaker condition than fitting well, which is what separates
 the price of opacity from the price of performance.
@@ -124,21 +124,19 @@ queries — the precondition for taking the law onto a real, non-enumerable task
 
 (`python figures/bridge.py` → `figB_bridge.png`)
 
-The toy prices opacity only on an enumerable cube, where search always succeeds. This
-figure runs the bridge on real data with a held-out verifier, so a point of the legibility
-floor lives off the cube. The legible reader is an explicitly additive model
+The other figures price opacity on an enumerable cube, where search always succeeds. This
+figure measures the same legibility floor on real data with a held-out verifier. The
+legible reader is an explicitly additive model
 (gradient boosting with `interaction_cst='no_interactions'`, the capacity-matched order-1
 reader); the free searcher is the same family with full interactions; the floor is the
-held-out performance the additive reader forgoes. Three results, set by an adversarial
-red-team:
+held-out performance the additive reader forgoes. Three results:
 
 - The additive floor **rises with interaction order** and is ~0 at order 1.
 - On **california housing** the floor is a real **0.088 ± 0.006 R²** — location is an
   irreducible 2-D (latitude × longitude) interaction no additive model can represent —
   while additively-separable tasks (**diabetes**, breast cancer) pay ~0.
 - A naive depth-1 reader **overstates** that floor (0.127 vs 0.088 on california), because
-  a depth-1 stump under-fits univariate shape; the honest reader is the additive model.
+  a depth-1 stump under-fits univariate shape; the capacity-matched reader is the additive model.
 
-So the premium term of the going-dark inequality is demonstrated off the enumerable cube,
-at an honest magnitude. Tabular tasks top out near order 4; the high-interaction software
-regime is the next rung.
+So the legibility floor is measurable off the enumerable cube, on real held-out data, at a
+modest magnitude. Tabular tasks top out near interaction order 4.
