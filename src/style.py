@@ -1,8 +1,7 @@
-"""Shared publication style for the Dark Stack figures.
+"""Shared publication style for the figures.
 
-Restrained, ink-on-paper aesthetic suited to an MIT Press / Antikythera volume:
-near-black ink, a muted categorical palette that survives greyscale printing,
-thin rules, no chartjunk.
+Restrained, ink-on-paper aesthetic for print: near-black ink, a muted categorical
+palette that survives greyscale printing, thin rules, no chartjunk.
 """
 import matplotlib as mpl
 import matplotlib.pyplot as plt

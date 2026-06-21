@@ -1,11 +1,11 @@
 """
 Governance as control: PID-priced lambda and cascade-control timing.
 
-The paper's "Versioning" and "Spec and the Loop" sections specify governance as
+Governance is specified as
 a Lagrangian price lambda subtracted from reward, with lambda set by a PID
 controller: P raises the penalty in proportion to current violation, I stores
 sustained violation so persistent failure ratchets up in price, D reacts to the
-rate of change to damp overshoot. It then warns of "iatrogenic thrash": if the
+rate of change to damp overshoot. Mistimed governance causes "iatrogenic thrash": if the
 governing loop revises lambda near the natural frequency of the loop beneath it,
 the two resonate and gain runs away (instability at unity loop gain / 180 deg
 phase). Cascade-control practice demands the inner loop settle 3:1 to 10:1 faster
@@ -14,7 +14,7 @@ than the outer loop that commands it.
 References
 ----------
 classical PID / cascade control (Astrom & Murray, Feedback Systems);
-the paper's own citations to cascade-ratio heuristics (3:1 .. 10:1).
+cascade-ratio heuristics (3:1 .. 10:1).
 """
 from __future__ import annotations
 

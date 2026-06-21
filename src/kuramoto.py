@@ -1,12 +1,11 @@
 """
 Kuramoto entrainment for the "anything factory" / phase-locked condensate.
 
-The paper's closing sections argue that factory loops sharing a common medium
-(e.g. a common foundation-model checkpoint acting as a global forcing function)
-drift into synchrony like Huygens' coupled pendulum clocks; that this is the
-mechanism of the 2010 flash crash ("a spiral of phase-locked, mutually-entrained
-machine-time loops"); and that diversifying dependencies / jitter raises the
-synchronisation threshold and prevents correlated collapse.
+Factory loops sharing a common medium (e.g. a common foundation-model checkpoint
+acting as a global forcing function) can drift into synchrony like Huygens' coupled
+pendulum clocks -- the dynamics behind correlated machine-time cascades such as the
+2010 flash crash. Diversifying dependencies / jitter raises the synchronisation
+threshold and prevents correlated collapse.
 
 We model each factory's slowest control loop as a phase oscillator and couple
 them. The Kuramoto order parameter r measures systemic synchronisation;

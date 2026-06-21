@@ -1,10 +1,9 @@
 """
 ROBUSTNESS -- are the five results regions of parameter space, or tuned points?
 
-Each panel sweeps the parameters a skeptic would accuse us of tuning and shows the
-phenomenon survives over a region (and, for Kuramoto, tracks the analytic law).
-This is the check a toy model has to earn: the conclusions must not depend on the
-particular numbers we got to choose. The five figures' operating points are marked.
+Each panel sweeps the parameters most open to a charge of tuning and shows the
+phenomenon survives over a region (and, for Kuramoto, tracks the analytic law):
+the conclusions do not depend on the particular operating points, which are marked.
 """
 import os, sys, json
 import numpy as np

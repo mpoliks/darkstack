@@ -1,11 +1,11 @@
 """
-The unified toy Dark Factory.
+The unified Dark Factory.
 
 A finite population of producer agents searches a space of K "assemblies"
 (configurations on a 1-D design axis). Each agent is a mean-based no-regret
 learner (multiplicative weights / replicator) with exploration rate mu -- the
 "surplus-generating frontier." The collective behaviour we read out is an
-*input-output distribution*, exactly the object the paper says a "version" lives
+*input-output distribution*, the object a "version" lives
 in: we never inspect the agents' internal weights, only what the population does.
 
 Landscape. Assemblies sit on a line. Two quality peaks A and B encode two ways
@@ -23,7 +23,7 @@ violation (the Lagrangian governance channel).
 
 Norm vs metric. The factory is rewarded on a METRIC (a proxy that samples the
 true NORM at a finite rate). When the norm varies faster than the metric samples
-it, optimisation against the metric aliases away from the norm -- the paper's
+it, optimisation against the metric aliases away from the norm -- a
 Nyquist account of overfitting.
 
 This single object instantiates, under different parameter regimes:
@@ -168,7 +168,7 @@ if __name__ == "__main__":
     # The cusp: exploration rate mu controls version stickiness. Low mu => the
     # population is sticky (bistable versions, wide hysteresis loop in c). High mu
     # => fluid (tracks c immediately, little hysteresis). The SAME knob that sets
-    # the "mean-based frontier" strength sets the version structure -- the paper's
+    # the "mean-based frontier" strength sets the version structure -- the
     # frontier/core tension made mechanical.
     n = 4000
     up = np.linspace(0.6, 1.6, n)
