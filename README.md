@@ -89,3 +89,24 @@ the exact settings the figures use.
   memoryless (dwell times are exponential), the transfer-operator spectral gap sets the
   escape timescale (mean dwell = 2τ₂), and as the spec approaches the fold both
   early-warning signals obey the AR(1) law σ² ∝ 1/(1−α²).
+
+## The opacity dividend — a measured law
+
+(`python figures/opacity_dividend.py` → `figO_dividend.png`; toolkit in `src/dividend.py`)
+
+The toy's headline cost, the opacity premium, was priced by part-count, so it reported a
+positive cost even for a separable task whose optimum a one-variable reader recovers
+exactly. The dividend reprices opacity by interaction order. A reader who can hold K-way
+interactions builds the best degree-≤K model of the value landscape and acts on its
+argmax; the dividend `D_K` is the value that reader leaves unreached. Three results
+follow.
+
+- The **forced-opacity order** `K*` (the first K with `D_K = 0`) equals the landscape's
+  true interaction order `r`, stable across d = 8 to 14.
+- The **budget-invariant floor** `Φ*` (the gap a legible reader keeps after a free
+  searcher has closed its own) is zero for a separable task and positive for an
+  interacting one.
+- The dividend sends the linear control's part-count premium of ~0.7 to a true zero.
+
+Acting near-optimally is a weaker condition than fitting well, which is what separates
+the price of opacity from the price of performance.
