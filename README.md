@@ -110,3 +110,12 @@ follow.
 
 Acting near-optimally is a weaker condition than fitting well, which is what separates
 the price of opacity from the price of performance.
+
+A second figure (`python figures/dividend_depth.py` → `figP_dividend.png`) grounds the
+dividend in Kauffman's NK model and shows it as a law. The order-1 forced floor rises
+with the interaction order `K` — zero at `K = 0` (separable), climbing past 2σ by
+`K = 4` — because the value migrates up the interaction orders as the task tangles, its
+Walsh spectrum spreading from order 1 into orders 2–5. The same figure shows that acting
+and fitting are distinct quantities (the variance a reader captures leaves about half its
+decision regret unexplained), and that the floor is recoverable from a verifier's
+queries — the precondition for taking the law onto a real, non-enumerable task.

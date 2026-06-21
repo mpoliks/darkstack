@@ -97,6 +97,24 @@ def planted_order(d, r, rng, dense=True, terms=4):
     return fwht(fhat), pc
 
 
+# ---- Kauffman NK landscape (tunable epistasis; Walsh order = K+1) ------------
+def nk_landscape(d, K, rng):
+    """NK landscape on {0,1}^d (Kauffman 1989): each of the d loci contributes a random
+    fitness depending on its own bit and K others; total fitness is the mean. The highest
+    non-vanishing Walsh interaction order is K+1, so K=0 is additively separable."""
+    n = 1 << d
+    bits = [((np.arange(n) >> b) & 1) for b in range(d)]
+    total = np.zeros(n)
+    for i in range(d):
+        others = [j for j in range(d) if j != i]
+        neigh = [i] + (list(rng.choice(others, size=K, replace=False)) if K > 0 else [])
+        idx = np.zeros(n, dtype=int)
+        for t, b in enumerate(neigh):
+            idx += bits[b] << t
+        total += rng.standard_normal(1 << len(neigh))[idx]
+    return total / d, popcounts(d)
+
+
 # ---- legible vs free search under a metered budget (the Phi* experiment) -----
 def parity_features(d, K):
     """Design matrix Phi[x, S] = (-1)^{<S,x>} for all S with |S| <= K (columns)."""
