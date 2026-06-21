@@ -1,0 +1,51 @@
+{
+  "synthetic": {
+    "1": {
+      "phi_add": -0.004,
+      "phi_d1": 0.006,
+      "kstar": 1
+    },
+    "2": {
+      "phi_add": 0.242,
+      "phi_d1": 0.235,
+      "kstar": 2
+    },
+    "3": {
+      "phi_add": 0.307,
+      "phi_d1": 0.298,
+      "kstar": 4
+    },
+    "4": {
+      "phi_add": 0.331,
+      "phi_d1": 0.322,
+      "kstar": 6
+    }
+  },
+  "regression": {
+    "california": {
+      "phi_add": 0.088,
+      "phi_d1": 0.127,
+      "sd": 0.006,
+      "kstar": 4,
+      "free": 0.837
+    },
+    "diabetes": {
+      "phi_add": 0.007,
+      "phi_d1": -0.007,
+      "sd": 0.076,
+      "kstar": 1,
+      "free": 0.409
+    }
+  },
+  "classification": {
+    "breast cancer": {
+      "phi_add_logloss": -0.007
+    },
+    "wine": {
+      "phi_add_logloss": -0.013
+    },
+    "digits": {
+      "phi_add_logloss": 0.09
+    }
+  }
+}

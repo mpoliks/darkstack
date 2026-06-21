@@ -119,3 +119,26 @@ Walsh spectrum spreading from order 1 into orders 2–5. The same figure shows t
 and fitting are distinct quantities (the variance a reader captures leaves about half its
 decision regret unexplained), and that the floor is recoverable from a verifier's
 queries — the precondition for taking the law onto a real, non-enumerable task.
+
+## Off the cube — the bridge to real tasks
+
+(`python figures/bridge.py` → `figB_bridge.png`)
+
+The toy prices opacity only on an enumerable cube, where search always succeeds. This
+figure runs the bridge on real data with a held-out verifier, so a point of the legibility
+floor lives off the cube. The legible reader is an explicitly additive model
+(gradient boosting with `interaction_cst='no_interactions'`, the capacity-matched order-1
+reader); the free searcher is the same family with full interactions; the floor is the
+held-out performance the additive reader forgoes. Three results, set by an adversarial
+red-team:
+
+- The additive floor **rises with interaction order** and is ~0 at order 1.
+- On **california housing** the floor is a real **0.088 ± 0.006 R²** — location is an
+  irreducible 2-D (latitude × longitude) interaction no additive model can represent —
+  while additively-separable tasks (**diabetes**, breast cancer) pay ~0.
+- A naive depth-1 reader **overstates** that floor (0.127 vs 0.088 on california), because
+  a depth-1 stump under-fits univariate shape; the honest reader is the additive model.
+
+So the premium term of the going-dark inequality is demonstrated off the enumerable cube,
+at an honest magnitude. Tabular tasks top out near order 4; the high-interaction software
+regime is the next rung.
