@@ -162,3 +162,31 @@ def phi_floor(f, d, K, rng, B_big=None, reps=40):
     large budget. Equals D_K in the limit; estimated here at a large finite B."""
     n = len(f); B_big = B_big or min(n, 1 << min(d + 2, 16))
     return float(budget_curves(f, d, [K], [B_big], rng, reps=reps)[K][0])
+
+
+if __name__ == "__main__":
+    # Analytic backbone: three provable statements, verified on the cube.
+    d = 12; pc = popcounts(d); ratios = []
+    # T1: acting is controlled by fitting -- D_K * sigma <= 2||f - f_K||_inf (and is loose)
+    for r in (1, 2, 3, 4):
+        for s in range(20):
+            f, _ = planted_order(d, r, np.random.default_rng(40000 + 1000 * r + s))
+            sd = f.std(); fhat = walsh_coeffs(f); D, _, _ = dividend(f, pc, Kmax=r + 1)
+            for K in range(1, r + 1):
+                bound = 2 * np.max(np.abs(f - f_truncate(fhat, pc, K)))
+                assert D[K] * sd <= bound + 1e-9, ("T1", r, s, K)
+                if bound > 1e-9:
+                    ratios.append(D[K] * sd / bound)
+    # T2: a full-order reader suffices -- K* <= r always
+    for r in (1, 2, 3, 4):
+        for s in range(20):
+            f, _ = planted_order(d, r, np.random.default_rng(60000 + 1000 * r + s))
+            _, _, Ks = dividend(f, pc, Kmax=r + 1)
+            assert Ks is not None and Ks <= r, ("T2", r, s, Ks)
+    # T3: separable (order 1) => D_1 = 0
+    for s in range(30):
+        f, _ = nk_landscape(d, 0, np.random.default_rng(80000 + s))
+        D, _, _ = dividend(f, pc, Kmax=1)
+        assert D[1] <= 1e-9, ("T3", s, D[1])
+    print(f"dividend self-test OK: D_K*sigma <= 2||f-f_K||_inf (median tightness "
+          f"{np.median(ratios):.2f}), K* <= r, separable => D_1 = 0")

@@ -45,8 +45,8 @@ python run_factory.py          # one factory -> the summary + all five figures
 python figures/fig2_stackelberg.py
 python src/darkfactory.py       # just the five-lens summary
 
-# model self-tests (regret bounds, metastability, EWS, Kc, cascade)
-for m in learners transfer_operator ews kuramoto; do python src/$m.py; done
+# model self-tests (regret bounds, metastability, EWS, Kc, cascade, dividend)
+for m in learners transfer_operator ews kuramoto dividend; do python src/$m.py; done
 
 # check that no figure collides text with a legend
 python figures/audit_layout.py
