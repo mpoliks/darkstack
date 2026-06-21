@@ -1,142 +1,216 @@
-# The Dark Stack — toy model and figures
+# darkstack
 
-A small, self-contained simulation of a learning-agent population under selection and
-priced governance — a toy *dark factory* — together with the eight figures it generates.
-There is **one object**, a `DarkFactory` assembled from standard models (no-regret
-learners, a stochastic replicator, a transfer operator, early-warning signals, Kuramoto
-coupling), and every figure is a view of it. It accompanies the essay *The Dark Stack:
-Toward the Full Automation of Software*. You run it with
+A simulation engine for agent-factory design. You describe a factory you intend to build,
+simulate it, and get a verdict for how it will fail before you commit to the design.
 
-```bash
-python run_factory.py
+An agent factory here is a population of agents that writes, reviews, and ships work on its
+own, scored by evals and priced by a control loop. Once the population is learning against
+a configuration, changing that configuration is slow and costly, so the design is worth
+testing first. `simulate(design)` returns a one-word verdict with the numbers behind it:
+whether the factory converges on the goal, games its evals, stalls, never settles, or
+(when it shares a base model with peers) crashes in sync with them. On a failure verdict it
+names the single configuration change that resolves the condition and re-simulates to
+confirm the change works.
+
+The engine runs on the exact dynamical models in [src/](src) and does not re-derive them.
+It is the design-time counterpart to [factory_probe/](factory_probe), which measures the
+same properties on a running factory.
+
+## Example
+
+```
+$ factory-design demo
 ```
 
-which builds one `DarkFactory`, prints its five headline lenses, and renders all five
-core figures from that single object. Because the organs are exact, the theorems are
-exact: V = 0 and U\* = ½ (Deng–Schneider–Sivan), Kc = 2γ (Kuramoto), and the
-incompressibility counting bound all hold. Only the versions and the pathologies emerge
-from the dynamics: the proved results are proved, and the rest is observed.
+```
+A factory you might build: a fast pipeline scored by a cheap, gameable judge.
+
+  VERDICT: OVERFITTING
+  the population scores well on the metric while missing the true goal -- it is gaming the eval.
+
+  [pathology]  overfitting  [overfitting=0.75, stable_failure=0.15, thrash=0.05, healthy=0.04]
+      fingerprint={settledness: 0.84, variety: 1.5, distance_from_goal: 1.0, metric_minus_truth: 0.86}
+      maps to: the post-mortem you would otherwise write by hand after the build
+  ...
+
+FIX for overfitting: set judge_fidelity 0.2 -> 0.8
+  make the metric track the true goal (a gameable judge is the overfitting)
+  verified by re-simulation: true-goal satisfaction 0.00 -> 0.86  [RESOLVED]
+```
+
+The factory scores 0.86 on its metric and 0.0 on the real goal: it found a way to please a
+cheap judge. A judge that tracks the goal raises the real-goal score to 0.86. The engine
+applied that change and checked it before printing it.
+
+## Install
+
+```bash
+python3.12 -m venv .venv && source .venv/bin/activate
+pip install -e ".[test]"
+```
+
+This puts a `factory-design` command on the path. `factory-design --help` lists the rest.
+Add `--quick` to any command for shorter runs with fewer seeds.
+
+## Usage
+
+The defaults describe a healthy factory. Change one or two settings to express a design in
+question, then simulate, diagnose, and verify the fix.
+
+```python
+from factory_design import FactoryDesign, simulate, diagnose, recommend, verify
+
+design = FactoryDesign(explore_rate=0.0005)    # agents almost never try anything new
+report = simulate(design)
+print(report.verdict)                          # 'learning_death'
+
+for cond in diagnose(report):
+    print(recommend(design, cond.name))        # set explorer_floor: 0.0 -> 0.06
+    print(verify(design, cond.name))           # effective variety 0.01 -> 1.04  [OK]
+```
+
+`recommend` returns the change as a diff against the supplied design, not a generic tip.
+`verify` applies the change, simulates again, and reports the before and after of the
+relevant number, so a suggestion ships only when it resolves the condition. Every reported
+number is a median over a seed ensemble with its spread, and the simulation is seed-fixed.
+
+## Failure modes
+
+The verdict is one of these. Each is a distinct mechanism with its own fix.
+
+| verdict | meaning | fix |
+|---|---|---|
+| `healthy` | converges on the goal and keeps exploring | none |
+| `stable_failure` | settles into a pattern that misses the goal and will not leave it | enable the governance controller to price the failure |
+| `overfitting` | scores the metric while missing the real goal | a judge that tracks the goal, or faster eval sampling |
+| `learning_death` | exploration collapses; stuck on one approach, cannot adapt | reserve a protected exploration share |
+| `thrash` | never commits; finds approaches and drops them | lower exploration so the core can hold a result |
+
+Two further conditions come from outside the population:
+
+- `iatrogenic_thrash`: the governance loop reprices faster than the factory settles and
+  drives the oscillation it is meant to damp. Fix: reprice 3–10x slower than the factory
+  settles.
+- `correlated_crash`: peers share a base model or control plane and move in lockstep, the
+  mechanism behind machine-time cascades such as the 2010 flash crash. Fix: spread
+  vendors, models, and schedules across the peer group.
+
+## Lenses
+
+Each simulation reports a set of lenses. Each names the real thing it stands for and the
+limit of what it claims.
+
+- **pathology**: the verdict, as scores over the five modes plus a fingerprint. A run
+  between two modes is flagged `ambiguous` and names both.
+- **versions**: how many distinct stable operating modes the factory settles into, and how
+  durable each is. Determines whether a release pins to a config or must be tracked by what
+  the factory does.
+- **governance**: whether the repricing loop is stable or oscillating, read from the
+  measured price swings. Sets the cadence of the eval-to-policy loop.
+- **early_warning**: whether rising variance and autocorrelation flag an approaching
+  tipping point, tested against a flat baseline and a phase-randomized surrogate. These are
+  the two signals to monitor in production.
+- **ecology**: when peers share infrastructure, whether they synchronize into a correlated
+  crash. A vendor-and-model diversity decision.
+- **steering**: a note shown only when a design reserves no exploration, pointing to why
+  that ceilings what the factory can reach (`factory-design reference`).
+
+## Presets
+
+The named designs are recognizable cases. Simulate one, read the verdict, apply the fix.
+
+```
+$ factory-design presets
+  healthy               -> healthy
+  gameable_judge        -> overfitting
+  no_exploration_floor  -> learning_death
+  stuck_failing         -> stable_failure
+  repricing_too_fast    -> stable_failure   (governance lens reports iatrogenic_thrash)
+  never_settles         -> thrash
+  monoculture           -> healthy          (ecology lens reports correlated_crash)
+```
+
+Override any setting from the command line:
+
+```bash
+factory-design sim no_exploration_floor                   # the failure
+factory-design fix no_exploration_floor                   # the verified fix
+factory-design sim --set explore_rate=0.0005              # a custom case
+factory-design sweep healthy explore_rate 0.001,0.06,0.3  # the safe range
+factory-design compare healthy never_settles              # two designs side by side
+```
+
+## Settings
+
+`factory-design knobs` lists every setting with a gloss and the harness thing it stands
+for. The main ones:
+
+- `explore_rate`, `explorer_floor`: how much the population tries new approaches, and a
+  protected minimum the scoring cannot starve.
+- `eval_period`, `judge_fidelity`: how often the judge re-scores, and how faithfully its
+  metric tracks the real goal.
+- `controller`, `repricing_period`: the governance loop (off / gentle / aggressive) and how
+  often it reprices.
+- `peer_factories`, `shared_dependency`, `dependency_diversity`: how many other factories
+  share infrastructure, how tightly, and how varied their stacks are.
+
+Some real settings have no model here, and the tool reports that rather than faking it:
+retry and escalation depth, tool-call success rate, context-window budget, and rate limits.
+Set those in the harness directly.
+
+## Scope and limits
+
+The simulation runs on a small set of exact dynamical models in [src/](src): a finite
+population of learning agents under selection, a transfer operator that reads stable modes
+from what the population does, early-warning signals, a coupled-oscillator model for the
+ecology, and a PID controller for governance. The models are exact, so the proved results
+hold: the steering value and its collapse, the synchronization onset, the incompressibility
+count. The verdicts and fixes that come off the dynamics are observed, seed-averaged, and
+reported with their spread and their limits.
+
+No number here measures a real factory. The mechanisms match the ones a real factory has,
+which is enough to choose a design before building. Once the factory is running, point
+[factory_probe/](factory_probe) at it: that package measures the same properties on a live
+agent-to-agent system through the interfaces it exposes, with a 7/7 falsification table.
+
+## Steering reference
+
+One result sits apart because it is a property of the game, not of any one design. A
+population that reserves some exploration can be steered to a better outcome for the
+architect than the value committed to at design time; a purely retentive one cannot exceed
+that value, and with only two options the gap is gone. `factory-design reference` shows it
+on the canonical Deng–Schneider–Sivan game, with the committed value computed and the
+published optimum cited. For a builder this means: reserve some non-greedy exploration, or
+the factory can only reach what was designed in.
 
 ## Layout
 
 ```
-run_factory.py       the capstone: one DarkFactory -> all five views
-src/
-  darkfactory.py     the object: five lenses + the full data each figure plots
-  factory.py         the population dynamics organ (stochastic replicator)
-  learners.py        Hedge, EXP3, and the Blum–Mansour no-swap-regret reduction
-  transfer_operator.py   Ulam estimate of the transfer operator + spectral tools
-  ews.py             early-warning signals (variance, lag-1 autocorrelation)
-  kuramoto.py        coupled-oscillator synchronisation
-  control.py         PID-priced governance and cascade timing
-  style.py           shared figure styling
-figures/             one thin, plot-only view per figure (data comes from DarkFactory)
-  audit_layout.py    layout checker (no text or legend collisions)
-out/                 the numbers each figure computed
+factory_design/      the engine: describe a design, simulate it, diagnose and fix it
+  design.py          FactoryDesign -- the settings, in plain terms, and their translation
+  simulate.py        simulate(design) -> a report, composing the src/ models
+  pathology.py       the failure-mode classifier (scores + ambiguity), falsification-gated
+  diagnose.py        read a report -> the conditions worth fixing
+  levers.py          for each condition, the one change to make
+  verify.py          apply the change, re-simulate, report before and after
+  sweep.py           sweep a setting for the safe range; compare two designs
+  reference.py       the steering result (a property of the game)
+  presets.py         the named designs
+  cli.py             the factory-design command
+  selftest.py        the falsification table (classifier round-trip + lever battery)
+src/                 the exact dynamical models the engine runs on
+factory_probe/       measure the same properties on a live, running factory
+figures/             worked examples, and the checks that the models are exact
 ```
 
-## Reproduce
+## Tests
 
 ```bash
-python3.12 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-
-python run_factory.py          # one factory -> the summary + all five figures
-
-# or a single figure, or the object alone:
-python figures/fig2_stackelberg.py
-python src/darkfactory.py       # just the five-lens summary
-
-# model self-tests (regret bounds, metastability, EWS, Kc, cascade, dividend)
-for m in learners transfer_operator ews kuramoto dividend; do python src/$m.py; done
-
-# check that no figure collides text with a legend
-python figures/audit_layout.py
+factory-design selftest          # the falsification table: classifier round-trip + every fix
+python -m pytest -q              # the full suite (engine + probe)
+python run_factory.py            # the dynamical models, rendered as figures
 ```
 
-## The five figures
-
-1. **Opacity–cost frontier.** Legible (low-dimensional) assemblies are exponentially
-   rare, and the premium for staying legible grows as the best designs get more complex.
-2. **The Stackelberg gap (V vs U\*).** On the Deng–Schneider–Sivan game: a mean-based
-   frontier is steered to U\*, a no-swap-regret core is held to V.
-3. **Versioning by the transfer operator.** Versions as near-invariant modes of
-   operation; the spectral gap grades how robust each one is.
-4. **Pathologies and catastrophe.** Four distinct fingerprints, critical slowing down
-   before a fold, and overfitting as aliasing.
-5. **Governance timing and the anything factory.** The cascade ratio that tames
-   iatrogenic thrash, Kuramoto entrainment, and the phase-locked condensate.
-
-Results are seed-fixed and reproduce bit-for-bit; the figure data sits in `out/`.
-
-## Three robustness studies
-
-Separate from the five-figure sequence, these test whether the results survive outside
-the exact settings the figures use.
-
-- **Robustness** (`figures/robustness.py` → `figR_robustness.png`): each result holds
-  across a region of parameter space, and the operating points the figures use sit
-  inside that region. The opacity premium over (d,k), the Stackelberg gap over learning
-  rate, the two-version split over (M,μ), the four pathologies tiling (μ,c), the
-  early-warning trend over ramp rate and noise, and the Kuramoto onset tracking the
-  analytic Kc = 2γ.
-- **Dynamics invariance** (`figures/dynamics_invariance.py` → `figD_dynamics.png`): the
-  Stackelberg gap holds across several mean-based learners: Hedge, FTPL, and EXP3,
-  alongside multiplicative weights. The metastable versions also survive a change of
-  selection functional, from exponential to linear fitness. They disappear only under a
-  different class of dynamics: best-response (logit) gives one version, because
-  metastability needs imitation.
-- **Closed-form checks** (`figures/analytic_anchor.py` → `figA_anchor.png`): the two
-  emergent results fall on the laws their mechanisms predict. Metastable escape is
-  memoryless (dwell times are exponential), the transfer-operator spectral gap sets the
-  escape timescale (mean dwell = 2τ₂), and as the spec approaches the fold both
-  early-warning signals obey the AR(1) law σ² ∝ 1/(1−α²).
-
-## The opacity dividend — a measured law
-
-(`python figures/opacity_dividend.py` → `figO_dividend.png`; toolkit in `src/dividend.py`)
-
-The opacity dividend prices opacity by interaction order. A reader who can hold K-way
-interactions builds the best degree-≤K model of the value landscape and acts on its
-argmax; the dividend `D_K` is the value that reader leaves unreached. Three results
-follow.
-
-- The **forced-opacity order** `K*` (the first K with `D_K = 0`) equals the landscape's
-  true interaction order `r`, stable across d = 8 to 14.
-- The **budget-invariant floor** `Φ*` (the gap a legible reader keeps after a free
-  searcher has closed its own) is zero for a separable task and positive for an
-  interacting one.
-- On a separable task the dividend is zero; a part-count measure, by contrast, reports ~0.7.
-
-Acting near-optimally is a weaker condition than fitting well, which is what separates
-the price of opacity from the price of performance.
-
-A second figure (`python figures/dividend_depth.py` → `figP_dividend.png`) grounds the
-dividend in Kauffman's NK model and shows it as a law. The order-1 forced floor rises
-with the interaction order `K` — zero at `K = 0` (separable), climbing past 2σ by
-`K = 4` — because the value migrates up the interaction orders as the task tangles, its
-Walsh spectrum spreading from order 1 into orders 2–5. The same figure shows that acting
-and fitting are distinct quantities (the variance a reader captures leaves about half its
-decision regret unexplained), and that the floor is recoverable from a verifier's
-queries — the precondition for taking the law onto a real, non-enumerable task.
-
-## Off the cube — the bridge to real tasks
-
-(`python figures/bridge.py` → `figB_bridge.png`)
-
-The other figures price opacity on an enumerable cube, where search always succeeds. This
-figure measures the same legibility floor on real data with a held-out verifier. The
-legible reader is an explicitly additive model
-(gradient boosting with `interaction_cst='no_interactions'`, the capacity-matched order-1
-reader); the free searcher is the same family with full interactions; the floor is the
-held-out performance the additive reader forgoes. Three results:
-
-- The additive floor **rises with interaction order** and is ~0 at order 1.
-- On **california housing** the floor is a real **0.088 ± 0.006 R²** — location is an
-  irreducible 2-D (latitude × longitude) interaction no additive model can represent —
-  while additively-separable tasks (**diabetes**, breast cancer) pay ~0.
-- A naive depth-1 reader **overstates** that floor (0.127 vs 0.088 on california), because
-  a depth-1 stump under-fits univariate shape; the capacity-matched reader is the additive model.
-
-So the legibility floor is measurable off the enumerable cube, on real held-out data, at a
-modest magnitude. Tabular tasks top out near interaction order 4.
+`factory-design selftest` prints one row per claim the engine makes about itself: every
+preset classifies as its own failure mode, and every recommended fix resolves its condition
+on re-simulation. A red row is a finding, not a crash.
