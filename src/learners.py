@@ -1,7 +1,7 @@
 """
-Learning primitives for the Dark Stack toy factory.
+Learning primitives: mean-based no-regret and no-swap-regret learners.
 
-The paper's "Primitive" section specifies two load-bearing learner classes:
+Two load-bearing learner classes:
 
   * mean-based no-regret learners  -- the surplus-generating frontier. Their
     action probabilities are a (smooth) function of CUMULATIVE reward only.
@@ -9,8 +9,8 @@ The paper's "Primitive" section specifies two load-bearing learner classes:
     canonical instances. Deng-Schneider-Sivan (NeurIPS 2019) prove these can be
     steered BEYOND the Stackelberg value V toward U*.
 
-  * no-swap-regret learners -- the surplus-retaining core. Built, per the paper
-    (citing Blum & Mansour 2007), as N copies of a no-regret learner glued
+  * no-swap-regret learners -- the surplus-retaining core. Built
+    (Blum & Mansour 2007) as N copies of a no-regret learner glued
     together with a per-round stationary-distribution fixed point. They converge
     to the correlated equilibrium of the committed game and then stop; against
     them the optimizer can extract at most V.
@@ -44,7 +44,7 @@ class Hedge:
     def __init__(self, n_actions: int, eta: float | None = None, horizon: int | None = None,
                  rng: np.random.Generator | None = None):
         self.K = int(n_actions)
-        # Optimal-ish learning rate sqrt(8 ln K / T) if horizon known, else a default.
+        # Near-optimal learning rate sqrt(8 ln K / T) if horizon known, else a default.
         if eta is None:
             T = horizon if horizon is not None else 10_000
             eta = np.sqrt(8.0 * np.log(self.K) / max(T, 1))
@@ -105,9 +105,8 @@ class EXP3:
 def stationary_distribution(Q: np.ndarray, eps: float = 1e-9) -> np.ndarray:
     """Stationary distribution p of a row-stochastic matrix Q: p = p Q.
 
-    This is the per-round fixed point the paper describes -- "the array of
-    experts' recommendations is read as a transition matrix and its stationary
-    distribution is found." We solve it as the left eigenvector for eigenvalue 1,
+    This is the per-round fixed point: the array of experts' recommendations is
+    read as a transition matrix and its stationary distribution is found. We solve it as the left eigenvector for eigenvalue 1,
     with a tiny uniform regularisation to guarantee irreducibility/aperiodicity.
     """
     K = Q.shape[0]
@@ -159,7 +158,7 @@ class BlumMansourSwap:
 
 
 # --------------------------------------------------------------------------- #
-#  Self-tests: verify the regret guarantees the paper leans on actually hold.
+#  Self-tests: verify the regret guarantees hold.
 # --------------------------------------------------------------------------- #
 def _external_regret(rewards_played: np.ndarray, reward_history: np.ndarray) -> float:
     """(best fixed action in hindsight - algorithm) / T."""
@@ -185,7 +184,7 @@ def _swap_regret(actions: np.ndarray, reward_history: np.ndarray, K: int) -> flo
 if __name__ == "__main__":
     rng = np.random.default_rng(0)
     K, T = 5, 20_000
-    # Adversarial-ish stochastic rewards with a shifting best action.
+    # Adversarial stochastic rewards with a shifting best action.
     base = rng.uniform(0.2, 0.8, size=K)
     R = np.clip(base[None, :] + 0.15 * rng.standard_normal((T, K)), 0, 1)
     R[T // 2:, 0] += 0.3  # regime shift: action 0 becomes great late
@@ -217,7 +216,7 @@ if __name__ == "__main__":
     # adversary rewards the cyclic successor of the algorithm's current modal
     # action (a rock-paper-scissors forcing): this is exactly the structure
     # under which plain Hedge incurs linear swap regret while the Blum-Mansour
-    # reduction does not. This is the empirical separation a reviewer expects.
+    # reduction does not. This is the empirical separation between the two classes.
     # ------------------------------------------------------------------ #
     print("\nAdaptive (cyclic) adversary -- swap regret separation:")
     Kc = 3

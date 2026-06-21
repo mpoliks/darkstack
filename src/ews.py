@@ -1,7 +1,7 @@
 """
-Early-warning signals (EWS) for catastrophic transitions in the toy factory.
+Early-warning signals (EWS) for catastrophic transitions.
 
-The paper's "Evals: Catastrophes" section claims the eval layer can sense an
+An evaluator can sense an
 incoming catastrophe (Thom fold/cusp) through "critical slowing down," measured
 via rising variance, rising autocorrelation, and rising ensemble disagreement.
 
@@ -45,13 +45,13 @@ def rolling_ar1(x: np.ndarray, window: int) -> np.ndarray:
 
 def ensemble_disagreement(ensemble: np.ndarray) -> np.ndarray:
     """Cross-trajectory standard deviation at each time. `ensemble` is
-    (n_members, T). This is the paper's third EWS: heterogeneous judges
+    (n_members, T). The third EWS: heterogeneous judges
     disagreeing more as the system nears a cusp."""
     return np.nanstd(ensemble, axis=0)
 
 
 def detrend(x: np.ndarray, window: int) -> np.ndarray:
-    """Gaussian-ish detrend so EWS measure fluctuations, not the slow drift."""
+    """Smooth detrend so EWS measure fluctuations, not the slow drift."""
     from scipy.ndimage import uniform_filter1d
     x = np.asarray(x, float)
     trend = uniform_filter1d(x, size=window, mode="nearest")

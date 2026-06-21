@@ -1,7 +1,7 @@
 """
-Transfer-operator versioning for the Dark Stack toy factory.
+Transfer-operator versioning from a behavioural trajectory.
 
-The paper's "Versioning" section claims a factory version is a *near-invariant
+A factory version is a *near-invariant
 region of its input-output distribution*, that the transfer operator
 (Perron-Frobenius) is "exactly the type of measurement tooling required to
 identify a version," and that the "spectral gap" grades version robustness: a
@@ -32,9 +32,8 @@ def ulam_operator(states: np.ndarray, n_boxes: int, box_edges=None, lag: int = 1
     Parameters
     ----------
     states : (T,) array of a scalar behavioural observable (e.g. the population's
-             mean output, or its spec-satisfaction). The paper insists versions
-             are read off *behaviour*, not internal configuration -- this is that
-             observable.
+             mean output, or its spec-satisfaction). Versions are read off
+             *behaviour*, not internal configuration -- this is that observable.
     n_boxes : number of partition cells.
     lag : transition lag tau.
 
@@ -84,8 +83,8 @@ def reversibilize(P: np.ndarray):
 
 def coherence_ratio(P: np.ndarray, member_mask: np.ndarray, pi: np.ndarray | None = None) -> float:
     """rho(A) = P(stay in A | in A) = sum_{i,j in A} pi_i P_ij / sum_{i in A} pi_i.
-    rho ~ 1 => a near-invariant 'version' (Froyland 2005). The paper's 'period of
-    behavioural consistency' is 1/(1-rho)."""
+    rho ~ 1 => a near-invariant 'version' (Froyland 2005); the implied period of
+    behavioural consistency is 1/(1-rho)."""
     if pi is None:
         _, pi = reversibilize(P)
     A = np.asarray(member_mask, bool)
@@ -141,8 +140,8 @@ def almost_invariant_sets(P: np.ndarray, m: int = 2):
 
 
 def coherence_timescale(lam2: float, lag: int = 1) -> float:
-    """Implied metastability lifetime t = -lag / ln(lambda_2). The paper's
-    'duration of a version' / slowest-loop period falls out of this."""
+    """Implied metastability lifetime t = -lag / ln(lambda_2): the duration of a
+    version / slowest-loop period."""
     lam2 = min(max(lam2, 1e-6), 1 - 1e-9)
     return -lag / np.log(lam2)
 

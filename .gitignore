@@ -4,8 +4,11 @@ __pycache__/
 *.pyc
 .DS_Store
 .claude/
+*.egg-info/
+build/
+.pytest_cache/
 
-# working documents — kept on disk, not committed (this is "just the toy and figures")
+# working documents kept on disk, not committed
 EXPERIMENTAL_APPENDIX.md
 FIGURE_PLACEMENT.md
 PRICING_RESEARCH.md

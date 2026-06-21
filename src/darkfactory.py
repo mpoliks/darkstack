@@ -1,8 +1,8 @@
 """
 The Dark Factory — one object, five lenses.
 
-This is the unifying spine: a single factory whose ORGANS are the exact models the
-paper cites, so every exact result is preserved while the artifact is one runnable
+This is the unifying spine: a single factory whose ORGANS are standard models, so
+every exact result is preserved while the artifact is one runnable
 thing. The five figure scripts are thin plot-only views that import their data from
 here; `run_factory.py` drives all of them from one object.
 
