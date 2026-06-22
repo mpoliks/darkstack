@@ -1,6 +1,6 @@
 # factory_design
 
-Describe an agent factory you intend to build, simulate it, and get a verdict for how it
+Describe a software factory you intend to build, simulate it, and get a verdict for how it
 will fail. The engine runs on the exact dynamical models in [../src](../src) and reports a
 verdict with the numbers behind it. See the [repo README](../README.md) for the overview;
 this is the API map.

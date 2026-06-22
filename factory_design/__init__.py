@@ -1,4 +1,4 @@
-"""factory_design -- a simulation engine for agent-factory design.
+"""factory_design -- a simulation engine for software-factory design.
 
 You describe a factory you are about to build (a `FactoryDesign`), simulate it,
 and read back a verdict: will it converge, will it game its own evals, will it

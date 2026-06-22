@@ -1,9 +1,9 @@
 # darkstack
 
-A simulation engine for agent-factory design. You describe a factory you intend to build,
+A simulation engine for software-factory design. You describe a factory you intend to build,
 simulate it, and get a verdict for how it will fail before you commit to the design.
 
-An agent factory here is a population of agents that writes, reviews, and ships work on its
+A software factory here is a population of agents that writes, reviews, and ships work on its
 own, scored by evals and priced by a control loop. Once the population is learning against
 a configuration, changing that configuration is slow and costly, so the design is worth
 testing first. `simulate(design)` returns a one-word verdict with the numbers behind it:
