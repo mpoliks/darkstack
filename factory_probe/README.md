@@ -60,6 +60,8 @@ factory_probe/
   mock/               reference substrate: all four capabilities on controllable
                       dynamics with known ground truth
   adapters/skeleton.py  template for a live agent-to-agent substrate
+  adapters/openfang.py  a concrete adapter for OpenFang (the open-source Agent OS)
+  legible.py          a reusable bounded legible reader for the opacity track
 ```
 
 A track reads a substrate only through a capability interface and the trace
@@ -75,6 +77,17 @@ a `Reward`, the per-metric verdict stream to the behavioural series, and the
 applied governance price / injected intent to the control series. Declare the
 capabilities your instrumentation can serve; `run` executes only those tracks.
 `skeleton.py` documents the mapping for each capability.
+
+`adapters/openfang.py` is a concrete, worked example: it points at a running
+OpenFang instance (the open-source Agent Operating System,
+github.com/RightNow-AI/openfang), reads its workflow-run history and per-Hand
+dashboard metrics over the REST API (`GET /api/workflows/{id}/runs`), and replays
+them as the behavioural stream. It serves the observational tracks (versioning,
+catastrophe with supplied epochs, and the pathology classifier on the observed
+trace); the governance track needs a designated price trigger and a controllable
+instance. The JSON-to-interface mapping is tested against recorded API responses
+in `tests/test_openfang_adapter.py`; point it at a real base URL with
+`HttpOpenFangClient` to run against a live instance.
 
 Two tracks need a little more than wiring traffic, and the package now supplies the
 hard part of each:
