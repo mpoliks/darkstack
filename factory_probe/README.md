@@ -76,10 +76,21 @@ applied governance price / injected intent to the control series. Declare the
 capabilities your instrumentation can serve; `run` executes only those tracks.
 `skeleton.py` documents the mapping for each capability.
 
-Two parts need real-factory work beyond instrumentation: estimating the committed
-value V and steerable optimum U\* off a non-enumerable game (the Stackelberg
-track), and supplying a bounded legible model class for the task domain (the
-opacity track — sparse rule lists or depth-capped programs for code).
+Two tracks need a little more than wiring traffic, and the package now supplies the
+hard part of each:
+
+- Stackelberg: wire only `run()` (commit a leader move against a follower configured
+  mean-based or no-swap-regret, return the running extracted value). V and U\* are
+  read off `run()` — the value reachable against a no-swap follower estimates V,
+  against a mean-based follower estimates U\*. These are reachable-value estimates on
+  the sampled action set, not exact optima on the full action space.
+- Opacity: supply `sample` / `featurize` / `verifier_score` and the floors come from
+  the provided bounded legible reader (`factory_probe.legible.FeatureDividendTask`:
+  an additive model at order 1, a depth-capped model above it;
+  `substrates/tabular.py` is the reference, with a real nonzero floor on interacting
+  datasets and ~0 on additive ones). The part that stays yours is a non-vector legible
+  form for code — a depth-capped program or a sparse rule list — implemented under the
+  same one-call-per-candidate meter.
 
 ## Requirements
 

@@ -22,17 +22,21 @@ SteppableFactory  one "round" is one scoring cycle of a producer cohort. Each
 
 LearnerGame       a committed leader move against a follower agent configured as a
                   mean-based learner or a no-swap-regret learner; extracted value
-                  is the leader's per-round payoff. Estimating V and U* off a
-                  non-enumerable game is the open part -- see the package README.
+                  is the leader's per-round payoff. Wire only run(): V and U* are
+                  read off it (no-swap-reachable estimates V, mean-based-reachable
+                  estimates U*), so they are reachable-value estimates on the
+                  sampled action set, not exact optima on the full action space.
 
 DividendTask      one task with a hidden verifier (e.g. a SWE-bench Verified
-                  problem, an MBPP+ item). free_floor runs unconstrained search
-                  metered in verifier calls; legible_floor runs a bounded readable
-                  class (sparse rule list, depth-capped program) under the same
-                  meter; interaction_order estimates effective order (a
-                  Shapley-interaction index or a degree-bounded surrogate sweep).
-                  The opacity track sweeps a LIST of such tasks (pass task_specs)
-                  and grades the dividend against each task's measured order.
+                  problem, an MBPP+ item). Supply sample/featurize/verifier_score
+                  and the floors come from the provided bounded legible reader
+                  (additive at order 1, depth-capped above it; legible.py). free_floor
+                  runs full-interaction search metered in verifier calls; legible_floor
+                  runs the bounded reader under the same meter. For a non-vector
+                  legible form (a depth-capped program or a sparse rule list over
+                  code) implement the floors directly. The opacity track sweeps a
+                  LIST of such tasks (pass task_specs) and grades each dividend
+                  against the task's measured order.
 
 CoupledLoops      two or more factory loops sharing a dependency (a model
                   checkpoint, an upstream service). order_parameter is the phase
@@ -87,32 +91,68 @@ class LiveSteppableFactory(SteppableFactory):
 
 
 class LiveLearnerGame(LearnerGame):
+    """Wire one method, `run()`: commit a leader move against a follower configured
+    mean-based (steerable) or no-swap-regret (retentive), and return the running
+    per-round extracted value. V and U* are then read off run() -- the value the
+    leader reaches against a no-swap follower estimates V, against a mean-based
+    follower estimates U* -- so you do not estimate them separately. These are
+    reachable-value estimates on the sampled action set, not exact optima on the
+    full action space.
+    """
+
+    T = 12000          # rounds used by the V / U* estimates; override per factory
+
     def __init__(self, client):
         self.client = client
 
     def run(self, T, disclosure=0.0, follower="mean_based", n_actions=3, seed=0):
-        raise NotImplementedError("play the committed leader move; return running extracted value")
+        raise NotImplementedError("commit the leader move against the configured follower; "
+                                  "return the running per-round extracted value")
 
-    def stackelberg_value(self, n_actions=3):
-        raise NotImplementedError("estimate V (see README on the non-enumerable case)")
+    def stackelberg_value(self, n_actions=3, seed=0):
+        # the value reachable against a retentive (no-swap) follower estimates V
+        return float(self.run(self.T, follower="no_swap", n_actions=n_actions, seed=seed)[-1])
 
-    def steerable_value(self, n_actions=3):
-        raise NotImplementedError("estimate U*")
+    def steerable_value(self, n_actions=3, seed=0):
+        # the value reachable against a mean-based follower estimates U*
+        return float(self.run(self.T, follower="mean_based", disclosure=0.0,
+                              n_actions=n_actions, seed=seed)[-1])
 
 
 class LiveDividendTask(DividendTask):
-    def __init__(self, client, **spec):
+    """Supply how to sample, featurize, and verifier-score candidates, and the floors
+    come from the provided bounded legible reader (additive at order 1, depth-capped
+    above it; see factory_probe.legible.FeatureDividendTask). For a non-vector legible
+    form (a depth-capped program or a sparse rule list over code) implement
+    free_floor / legible_floor directly under the same one-call-per-candidate meter.
+    """
+
+    def __init__(self, client, sample=None, featurize=None, verifier_score=None,
+                 kind="reg", classes=None, **spec):
         self.client = client
         self.spec = spec
+        self._task = None
+        if sample and featurize and verifier_score:
+            from ..legible import FeatureDividendTask
+            self._task = FeatureDividendTask(sample, featurize, verifier_score,
+                                             kind=kind, classes=classes)
+
+    def _reader(self):
+        if self._task is None:
+            raise NotImplementedError(
+                "pass sample/featurize/verifier_score to use the provided bounded legible "
+                "reader (factory_probe.legible.FeatureDividendTask), or implement the floors "
+                "directly for a non-vector legible form")
+        return self._task
 
     def free_floor(self, budget, seed=0):
-        raise NotImplementedError("unconstrained search metered in verifier calls")
+        return self._reader().free_floor(budget, seed)
 
     def legible_floor(self, budget, order=1, seed=0):
-        raise NotImplementedError("bounded legible class under the same verifier-call meter")
+        return self._reader().legible_floor(budget, order, seed)
 
     def interaction_order(self, seed=0):
-        raise NotImplementedError("estimate effective interaction order")
+        return self._reader().interaction_order(seed)
 
 
 class LiveCoupledLoops(CoupledLoops):
