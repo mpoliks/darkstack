@@ -2,7 +2,10 @@
 
 Measure structural properties of a running software factory — a population of
 producer agents scored through a (possibly delayed) reward channel under a priced
-governance loop. Six properties are measured from behaviour alone:
+governance loop. It is the runtime counterpart to [factory-design](../README.md),
+which simulates the same properties at design time, before you build. Seven
+properties are measured — six from behaviour alone, plus the committed-value gap
+from a committed game:
 
 | track | property | confirms when | falsifies when |
 |---|---|---|---|
@@ -12,6 +15,7 @@ governance loop. Six properties are measured from behaviour alone:
 | governance | cascade-ratio stability of a governance loop | price instability falls as the repricing period crosses the cascade band | instability flat or rising with the cascade ratio |
 | entrainment | synchronisation threshold + condensate | onset ≈ Kc, diversity raises it, a one-shot halt re-locks, decoupling holds | onset independent of diversity, or a one-shot halt breaks the lock for good |
 | opacity | the verified value a legible reader forgoes | the free-vs-legible floor is ~0 when separable and rises with interaction order | floor flat across orders, or positive on a separable task |
+| stackelberg | the committed-value gap (V vs U\*) | a mean-based frontier is steered above V while a no-swap core stays at or below it, the gap needs three or more actions, and disclosure shrinks it | the frontier is not steerable above V, or the core is extractable above it |
 
 Each track returns a `Finding`: the numbers measured, whether the expected signal
 is present, and the criteria that would confirm or falsify it — so the same object
@@ -106,6 +110,39 @@ their reward is the binary completion status, and neither has a runtime price
 channel, so the governance track needs the controllable OpenFang path. Each
 mapping is tested against recorded API/database responses (the `test_*_adapter.py`
 files); point the client or source at a live instance to run against one.
+
+To run against your own factory, instantiate an adapter and pass it to
+`experiment.run` (the CLI's `--substrate` covers only the built-in `mock` and
+`tabular`):
+
+```python
+from factory_probe.adapters.openfang import OpenFangSubstrate, HttpOpenFangClient
+from factory_probe.experiment import run
+
+client = HttpOpenFangClient("https://your-openfang-instance", token="...")
+report = run(OpenFangSubstrate(client, workflow_id="wf_123"),
+             tracks=["versioning", "catastrophe", "pathology"])
+print(report.table())
+print(report.falsification_table())
+```
+
+The OpenClaw and Hermes adapters follow the same shape:
+`run(OpenClawSubstrate(SqliteOpenClawSource("~/.openclaw/state/openclaw.sqlite")), ...)`
+and `run(HermesSubstrate(HttpHermesClient("https://your-hermes")), ...)`.
+
+## How the two tools line up
+
+The design-time engine and the runtime probe measure the same properties; a verdict
+or condition in one maps to a track in the other:
+
+| factory-design (design time) | factory_probe (runtime track) |
+|---|---|
+| `versions` lens | versioning |
+| `overfitting` / `learning_death` / `thrash` / `stable_failure` verdict | pathology |
+| `early_warning` lens | catastrophe |
+| `iatrogenic_thrash` condition | governance |
+| `correlated_crash` condition | entrainment (condensate) |
+| `steering` note | stackelberg (V vs U\*) |
 
 Two tracks need a little more than wiring traffic, and the package now supplies the
 hard part of each:

@@ -157,6 +157,12 @@ class OpenClawFactory(SteppableFactory):
         # OpenClaw pricing is static config; there is no runtime price channel.
         self._price = float(lam)
 
+    def run(self, n: int):
+        # observe up to n rounds, capped at the available table window.
+        if not self._runs:
+            self.reset()
+        return super().run(min(n, len(self._runs)))
+
     def step(self) -> RoundObs:
         if not self._runs:
             self.reset()

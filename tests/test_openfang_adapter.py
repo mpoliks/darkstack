@@ -69,6 +69,13 @@ def test_replays_run_history_into_the_behavioural_series():
     assert any(c[1] == "/api/workflows/wf1/runs" for c in client.calls)   # hit the real endpoint
 
 
+def test_run_clamps_to_available_window():
+    series = _telegraph(n=200)
+    fac = OpenFangSubstrate(RecordedClient(_runs_from_series(series)), workflow_id="wf1").steppable()
+    fac.run(10_000)                                  # far more than the 200 runs available
+    assert len(fac.trace.behaviour_series("mean_pos")) == 200   # observed the window, did not raise
+
+
 def test_versioning_detects_two_modes_through_the_adapter():
     series = _telegraph(n=5000)
     sub = OpenFangSubstrate(RecordedClient(_runs_from_series(series)), workflow_id="wf1")

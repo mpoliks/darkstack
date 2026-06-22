@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+from dataclasses import fields
 
 from .design import FactoryDesign, KNOBS
 from .presets import PRESETS, get
@@ -25,6 +26,10 @@ from .verify import verify
 from .levers import recommend
 from .sweep import sweep, compare
 from . import reference
+
+# knobs whose value must be a number (every field except the string controller)
+_NUMERIC_KNOBS = {f.name for f in fields(FactoryDesign)
+                  if isinstance(f.default, (int, float)) and not isinstance(f.default, bool)}
 
 
 def _coerce(s: str):
@@ -36,22 +41,30 @@ def _coerce(s: str):
     return s
 
 
+def _number(knob: str, raw: str):
+    """Coerce a value for a numeric knob, with a clean error on a non-number."""
+    v = _coerce(raw)
+    if knob in _NUMERIC_KNOBS and not isinstance(v, (int, float)):
+        raise SystemExit(f"--set {knob}={raw!r}: value must be a number")
+    return v
+
+
 def _build_design(name: str | None, sets: list[str]) -> FactoryDesign:
     try:
         design = get(name) if name else FactoryDesign()
     except KeyError as e:
-        raise SystemExit(str(e))
+        raise SystemExit(e.args[0] if e.args else str(e))
     changes = {}
     for kv in sets or []:
         if "=" not in kv:
             raise SystemExit(f"--set expects knob=value, got {kv!r}")
-        k, v = kv.split("=", 1)
+        k, v = (part.strip() for part in kv.split("=", 1))
         if k not in KNOBS:
             raise SystemExit(f"unknown knob {k!r}; see `factory-design knobs`")
-        changes[k] = _coerce(v)
+        changes[k] = _number(k, v)
     try:
         return design.with_(**changes) if changes else design
-    except (ValueError, KeyError) as e:           # out-of-range or unknown knob
+    except (ValueError, KeyError, TypeError) as e:    # out-of-range / unknown / wrong type
         raise SystemExit(f"invalid design: {e}")
 
 
@@ -80,7 +93,12 @@ def cmd_fix(a):
 
 def cmd_sweep(a):
     design = _build_design(a.preset, a.set)
-    values = [_coerce(v) for v in a.values.split(",")]
+    if a.knob not in KNOBS:
+        raise SystemExit(f"unknown knob {a.knob!r}; see `factory-design knobs`")
+    tokens = [t.strip() for t in a.values.split(",") if t.strip()]
+    if not tokens:
+        raise SystemExit("sweep values must be a comma-separated list of numbers, e.g. 0.001,0.01,0.1")
+    values = [_number(a.knob, t) for t in tokens]
     print(sweep(design, a.knob, values, seeds=a.seeds, quick=True))
 
 
@@ -153,21 +171,23 @@ def build_parser() -> argparse.ArgumentParser:
     sp.set_defaults(func=cmd_sim)
 
     sp = sub.add_parser("fix", parents=[common], help="diagnose and verify the fix for each condition")
-    sp.add_argument("preset", nargs="?")
-    sp.add_argument("--set", action="append")
+    sp.add_argument("preset", nargs="?", help="a named preset (default: healthy)")
+    sp.add_argument("--set", action="append", help="override a knob: knob=value")
     sp.set_defaults(func=cmd_fix)
 
+    # preset is required for sweep so the three positionals can't be mis-bound when
+    # the values arg is omitted (sweep <preset> <knob> <v1,v2,...>).
     sp = sub.add_parser("sweep", parents=[common], help="sweep one knob, find the safe operating region")
-    sp.add_argument("preset", nargs="?")
-    sp.add_argument("knob")
-    sp.add_argument("values", help="comma-separated, e.g. 0.001,0.01,0.06,0.2")
-    sp.add_argument("--set", action="append")
+    sp.add_argument("preset", help="a named preset (e.g. healthy)")
+    sp.add_argument("knob", help="the knob to sweep (see `factory-design knobs`)")
+    sp.add_argument("values", help="comma-separated numbers, e.g. 0.001,0.01,0.06,0.2")
+    sp.add_argument("--set", action="append", help="override another knob: knob=value")
     sp.set_defaults(func=cmd_sweep)
 
     sp = sub.add_parser("compare", parents=[common], help="compare two designs")
-    sp.add_argument("a")
-    sp.add_argument("b")
-    sp.add_argument("--set", action="append")
+    sp.add_argument("a", help="first design (a named preset, e.g. healthy)")
+    sp.add_argument("b", help="second design (a named preset)")
+    sp.add_argument("--set", action="append", help="override a knob on design a: knob=value")
     sp.set_defaults(func=cmd_compare)
 
     sp = sub.add_parser("reference", parents=[common],
@@ -190,10 +210,13 @@ def main(argv=None):
     # resolve the SUPPRESS-default shared options (work before or after the subcommand)
     args.seeds = getattr(args, "seeds", 12)
     args.quick = getattr(args, "quick", False)
+    if args.seeds < 1:
+        raise SystemExit("--seeds must be >= 1")
     try:
         args.func(args)
-    except (ValueError, KeyError) as e:
-        raise SystemExit(f"error: {e}")
+    except (ValueError, KeyError, TypeError) as e:
+        msg = e.args[0] if (isinstance(e, KeyError) and e.args) else e
+        raise SystemExit(f"error: {msg}")
 
 
 if __name__ == "__main__":

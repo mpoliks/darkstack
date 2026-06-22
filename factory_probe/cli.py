@@ -27,11 +27,17 @@ def _make_substrate(name: str):
 
 
 def main(argv=None) -> int:
-    ap = argparse.ArgumentParser(prog="factory_probe")
+    ap = argparse.ArgumentParser(
+        prog="factory_probe",
+        description="Measure structural properties of a running software factory "
+                    "(the runtime counterpart to factory-design, which simulates the "
+                    "same properties at design time).")
     sp = ap.add_subparsers(dest="cmd", required=True)
 
     rp = sp.add_parser("run", help="run measurement tracks")
-    rp.add_argument("--substrate", default="mock")
+    rp.add_argument("--substrate", default="mock", choices=["mock", "tabular"],
+                    help="which built-in substrate to measure; default mock. To measure a "
+                         "live factory, use an adapter from Python (see factory_probe/README.md).")
     rp.add_argument("--track", action="append", dest="tracks",
                     help="run only this track (repeatable)")
     rp.add_argument("--json", help="write the full report to this JSON path")
