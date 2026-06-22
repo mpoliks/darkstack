@@ -19,7 +19,7 @@ same properties on a running factory.
 ## Example
 
 ```
-$ factory-design demo
+$ factory-design demo            # add --quick for a faster, lower-fidelity run
 ```
 
 ```
@@ -97,23 +97,37 @@ Two further conditions come from outside the population:
 
 ## Lenses
 
-Each simulation reports a set of lenses. Each names the real thing it stands for and the
-limit of what it claims.
+A simulation reports the lenses relevant to the design, not always all of them.
+`pathology`, `versions`, and `governance` always appear; the rest appear only when the
+design exercises them. Each lens names the real thing it stands for and the limit of what
+it claims.
 
-- **pathology**: the verdict, as scores over the five modes plus a fingerprint. A run
-  between two modes is flagged `ambiguous` and names both.
-- **versions**: how many distinct stable operating modes the factory settles into, and how
-  durable each is. Determines whether a release pins to a config or must be tracked by what
-  the factory does.
-- **governance**: whether the repricing loop is stable or oscillating, read from the
-  measured price swings. Sets the cadence of the eval-to-policy loop.
-- **early_warning**: whether rising variance and autocorrelation flag an approaching
-  tipping point, tested against a flat baseline and a phase-randomized surrogate. These are
-  the two signals to monitor in production.
-- **ecology**: when peers share infrastructure, whether they synchronize into a correlated
-  crash. A vendor-and-model diversity decision.
-- **steering**: a note shown only when a design reserves no exploration, pointing to why
-  that ceilings what the factory can reach (`factory-design reference`).
+- **pathology** (always): the verdict, as scores over the five modes plus a fingerprint. A
+  run between two modes is flagged `ambiguous` and names both.
+- **versions** (always): how many distinct stable operating modes the factory settles into,
+  and how durable each is. Determines whether a release pins to a config or must be tracked
+  by what the factory does.
+- **governance** (always): whether the repricing loop is stable or oscillating, read from
+  the measured price swings; reads "no controller" when the controller is off. Sets the
+  cadence of the eval-to-policy loop.
+- **early_warning** (on a full run, i.e. without `--quick`): whether rising variance and
+  autocorrelation flag an approaching tipping point, tested against a flat baseline and a
+  phase-randomized surrogate. These are the two signals to monitor in production.
+- **ecology** (when the design has peers): whether peers sharing infrastructure synchronize
+  into a correlated crash. A vendor-and-model diversity decision.
+- **steering** (when the design reserves no exploration): a note on why that ceilings what
+  the factory can reach (`factory-design reference`).
+
+### Reading a report
+
+The fingerprint has four axes, each in [0,1]: **settledness** (how firmly the factory sits
+in one behaviour; 0 = never commits), **variety** (how many distinct approaches stay in
+play; collapses toward 0 at learning death), **distance_from_goal** (how far the realised
+behaviour sits from what the spec wants), and **metric_minus_truth** (how much it scores
+the metric above the true goal -- the gaming signal). Other scalars: **stickiness** (how
+hard a single stable mode is to dislodge), **cascade_ratio** (repricing period over inner
+settling time; below 3:1 the loop oscillates), and **synchronisation** (peer lockstep, 0-1;
+above the onset threshold is correlated-crash exposure).
 
 ## Presets
 
@@ -129,6 +143,10 @@ $ factory-design presets
   never_settles         -> thrash
   monoculture           -> healthy          (ecology lens reports correlated_crash)
 ```
+
+The bare `presets` listing prints only the `name -> verdict` rows; the parentheticals above
+name what each preset's other lenses report, which you see by running
+`factory-design sim <preset>`.
 
 Override any setting from the command line:
 
@@ -175,13 +193,13 @@ agent-to-agent system through the interfaces it exposes, with a 7/7 falsificatio
 
 ## Steering reference
 
-One result sits apart because it is a property of the game, not of any one design. A
-population that reserves some exploration can be steered to a better outcome for the
-architect than the value committed to at design time; a purely retentive one cannot exceed
-that value, and with only two options the gap is gone. `factory-design reference` shows it
-on the canonical Deng–Schneider–Sivan game, with the committed value computed and the
-published optimum cited. For a builder this means: reserve some non-greedy exploration, or
-the factory can only reach what was designed in.
+Reserve some non-greedy exploration, or the factory can only reach what you designed in.
+That is the one result that sits apart, because it is a property of the game, not of any one
+design: a population that reserves some exploration can be steered to a better outcome for
+the architect than the value committed to at design time, while a purely retentive one
+cannot exceed it (and with only two options the gap is gone). `factory-design reference`
+shows it on the canonical Deng–Schneider–Sivan game, with the committed value computed and
+the published optimum cited.
 
 ## Layout
 

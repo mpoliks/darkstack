@@ -166,6 +166,12 @@ class HermesFactory(SteppableFactory):
             return max(1, len(self.toolset))
         return max(1, len(set(observed_tools)))
 
+    def run(self, n: int):
+        # observe up to n rounds, capped at the fetched session window.
+        if not self._sessions:
+            self.reset()
+        return super().run(min(n, len(self._sessions)))
+
     def step(self) -> RoundObs:
         if not self._sessions:
             self.reset()

@@ -141,6 +141,13 @@ class OpenFangFactory(SteppableFactory):
     def injectable_channels(self) -> set:
         return {"spec_target"} if self.price_setting is not None else set()
 
+    def run(self, n: int):
+        # observe up to n rounds, capped at the collected run history -- a live
+        # instance rarely has as many runs as a track's default n.
+        if not self._runs:
+            self._runs = self._fetch_runs()
+        return super().run(min(n, len(self._runs)))
+
     def step(self) -> RoundObs:
         if not self._runs:
             self._runs = self._fetch_runs()
