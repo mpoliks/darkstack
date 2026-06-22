@@ -98,7 +98,7 @@ class TabularDividendTask(DividendTask):
         score saturates. It is a surrogate, not exact -- it biases low orders upward
         by ~1 (a depth-1 stump under-fits univariate shape) and saturates at
         max(_DEPTHS)=4, so distinct true orders above ~2 collapse together. The
-        load-bearing signal of the opacity track is the dividend itself, which is
+        decisive signal of the opacity track is the dividend itself, which is
         computed independently of this estimate; the estimate only orders the x-axis.
         """
         sc = [self._score(dict(max_depth=k, **_COMMON), None, seed) for k in _DEPTHS]
