@@ -141,7 +141,7 @@ def build_parser() -> argparse.ArgumentParser:
                         help="shorter runs / fewer seeds")
 
     p = argparse.ArgumentParser(prog="factory-design", parents=[common],
-                                description="Simulate an agent-factory design before you build it.")
+                                description="Simulate a software-factory design before you build it.")
     sub = p.add_subparsers(dest="cmd", required=True)
 
     sp = sub.add_parser("demo", parents=[common], help="a recognisable failure, then the verified fix")

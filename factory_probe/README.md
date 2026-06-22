@@ -1,6 +1,6 @@
 # factory_probe
 
-Measure structural properties of a running agent factory — a population of
+Measure structural properties of a running software factory — a population of
 producer agents scored through a (possibly delayed) reward channel under a priced
 governance loop. Six properties are measured from behaviour alone:
 

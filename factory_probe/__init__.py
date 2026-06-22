@@ -1,4 +1,4 @@
-"""factory_probe -- measure structural properties of a running agent factory.
+"""factory_probe -- measure structural properties of a running software factory.
 
 A factory here is a population of producer agents that emit actions each round,
 are scored by a verifier through a (possibly delayed) reward channel, and are
