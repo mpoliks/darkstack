@@ -60,7 +60,11 @@ factory_probe/
   mock/               reference substrate: all four capabilities on controllable
                       dynamics with known ground truth
   adapters/skeleton.py  template for a live agent-to-agent substrate
-  adapters/openfang.py  a concrete adapter for OpenFang (the open-source Agent OS)
+  adapters/openfang.py  concrete adapter for OpenFang (reads native dashboard metrics)
+  adapters/openclaw.py  concrete adapter for OpenClaw (reads its control-plane SQLite DB)
+  adapters/hermes.py    concrete adapter for Hermes (reads its /api/sessions roster)
+  adapters/_derived.py  derives behavioural keys from tokens/status/tools when a
+                        framework reports no native ones
   legible.py          a reusable bounded legible reader for the opacity track
 ```
 
@@ -78,16 +82,30 @@ applied governance price / injected intent to the control series. Declare the
 capabilities your instrumentation can serve; `run` executes only those tracks.
 `skeleton.py` documents the mapping for each capability.
 
-`adapters/openfang.py` is a concrete, worked example: it points at a running
-OpenFang instance (the open-source Agent Operating System,
-github.com/RightNow-AI/openfang), reads its workflow-run history and per-Hand
-dashboard metrics over the REST API (`GET /api/workflows/{id}/runs`), and replays
-them as the behavioural stream. It serves the observational tracks (versioning,
-catastrophe with supplied epochs, and the pathology classifier on the observed
-trace); the governance track needs a designated price trigger and a controllable
-instance. The JSON-to-interface mapping is tested against recorded API responses
-in `tests/test_openfang_adapter.py`; point it at a real base URL with
-`HttpOpenFangClient` to run against a live instance.
+Three concrete, worked adapters ship against real frameworks, each reading a
+running instance's own run history and replaying it as the behavioural stream:
+
+- `adapters/openfang.py` — OpenFang (github.com/RightNow-AI/openfang): reads
+  `GET /api/workflows/{id}/runs` and per-Hand dashboard metrics. OpenFang reports
+  the behavioural keys natively, so they map straight through.
+- `adapters/openclaw.py` — OpenClaw (github.com/openclaw/openclaw): reads the
+  control-plane SQLite database (`cron_run_logs`), one row per scheduled run.
+- `adapters/hermes.py` — Hermes (github.com/NousResearch/hermes-agent): reads the
+  `GET /api/sessions` roster, one session per round.
+
+All three serve the observational tracks (versioning, catastrophe with supplied
+epochs, and the pathology classifier on the observed trace). On the OpenClaw and
+message-less Hermes paths the run records carry no tool-name signal, so the
+fingerprint's variety / learning-death dimension is unavailable there (versioning
+and catastrophe are unaffected). They differ in what is real versus derived, and
+the code says which: OpenFang exposes native metrics;
+OpenClaw and Hermes report only tokens, durations, statuses, and tool names, so
+their behavioural keys are *derived* proxies (`adapters/_derived.py`), their
+decision-time propensity is a flagged uniform stub (neither stores a log-prob),
+their reward is the binary completion status, and neither has a runtime price
+channel, so the governance track needs the controllable OpenFang path. Each
+mapping is tested against recorded API/database responses (the `test_*_adapter.py`
+files); point the client or source at a live instance to run against one.
 
 Two tracks need a little more than wiring traffic, and the package now supplies the
 hard part of each:

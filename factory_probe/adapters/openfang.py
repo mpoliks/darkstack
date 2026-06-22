@@ -8,7 +8,7 @@ history as the behavioural stream the measurement tracks consume:
 
     GET /api/workflows/{id}/runs   the run history (one run -> one round)
 
-Each run carries dashboard metrics (mapped to the behavioural keys the tracks read)
+Each run reports dashboard metrics (mapped to the behavioural keys the tracks read)
 and, when present, per-step action and log-probability (mapped to Decisions with
 their decision-time propensity).
 
